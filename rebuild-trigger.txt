@@ -1,0 +1,1 @@
+Triggering Vercel rebuild to fix sync issue. Timestamp: 2026-04-24T09:17:00Z
