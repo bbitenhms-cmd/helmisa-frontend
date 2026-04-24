@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { QrReader } from 'react-qr-reader';
@@ -10,8 +10,6 @@ const QRScanPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // SPEC: No QR scan = no access. This is the entry point.
-
   const handleScan = async (result, scanError) => {
     if (!!result && !loading) {
       setLoading(true);
@@ -19,29 +17,23 @@ const QRScanPage = () => {
       
       try {
         console.log('📸 Scanned:', qrText);
-        // Format: helmisa-{cafeId}-table-{tableNumber}
         const parts = qrText.split('-');
         const tableIndex = parts.indexOf('table');
 
-        if (tableIndex === -1) throw new Error('Invalid QR Format');
+        if (tableIndex === -1) throw new Error('Geçersiz QR Formatı');
 
         const cafeId = parts.slice(1, tableIndex).join('-');
         const tableNumber = parseInt(parts[tableIndex + 1]);
 
-        if (!cafeId || isNaN(tableNumber)) throw new Error('Could not read table info');
+        if (!cafeId || isNaN(tableNumber)) throw new Error('Masa bilgisi okunamadı');
 
         await login(cafeId, tableNumber, null);
         navigate('/profile-setup');
       } catch (err) {
-        console.error('Scan processing error:', err);
-        setError(err.message || 'QR Login failed');
+        console.error('Scan error:', err);
+        setError(err.message || 'Giriş yapılamadı');
         setLoading(false);
       }
-    }
-
-    if (!!scanError && scanError?.name !== 'NotFoundException') {
-        // Real errors like camera access
-        console.warn('QR Scanner Warning:', scanError);
     }
   };
 
@@ -52,7 +44,7 @@ const QRScanPage = () => {
           <h1 className="text-6xl font-extrabold tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
             helMisa
           </h1>
-          <p className="text-purple-200/70 text-lg">Scan QR to Join Table</p>
+          <p className="text-purple-200/70 text-lg">Masaya Katılmak için QR Okut</p>
         </header>
 
         <main className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-2xl border border-white/10 relative overflow-hidden">
@@ -68,18 +60,19 @@ const QRScanPage = () => {
                 onClick={() => setScanning(true)}
                 className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-5 px-8 rounded-2xl transition-all shadow-xl shadow-purple-500/20 active:scale-95"
               >
-                OPEN CAMERA
+                KAMERAYI AÇ
               </button>
               
-              <p className="mt-6 text-sm text-white/40">Only users at a table can interact</p>
+              <p className="mt-6 text-sm text-white/40">Sadece masadaki kullanıcılarla etkileşebilirsiniz</p>
             </div>
           ) : (
             <div className="relative">
-              <div className="rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-inner bg-black">
+              <div className="rounded-2xl overflow-hidden border-2 border-purple-500/50 bg-black aspect-square">
                 <QrReader
-                  constraints={{ facingMode: 'environment' }}
+                  constraints={{ facingMode: { ideal: 'environment' } }}
                   onResult={handleScan}
-                  videoContainerStyle={{ paddingBottom: '100%' }}
+                  className="w-full h-full"
+                  containerStyle={{ width: '100%' }}
                   videoStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 {loading && (
@@ -90,19 +83,22 @@ const QRScanPage = () => {
               </div>
               
               <div className="mt-6 flex flex-col gap-3">
-                 <p className="text-center text-purple-200 animate-pulse text-sm">Point camera at the Table QR code</p>
+                 <p className="text-center text-purple-200 animate-pulse text-sm">QR kodu kare içine ortalayın</p>
                  <button
-                  onClick={() => setScanning(false)}
+                  onClick={() => {
+                    setScanning(false);
+                    setError(null);
+                  }}
                   className="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl transition-all"
                 >
-                  Cancel
+                  İptal
                 </button>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="mt-6 p-4 bg-red-500/20 border border-red-500/40 rounded-2xl text-center animate-bounce">
+            <div className="mt-6 p-4 bg-red-500/20 border border-red-500/40 rounded-2xl text-center">
               <p className="text-red-300 text-sm font-medium">{error}</p>
             </div>
           )}
