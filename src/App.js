@@ -9,13 +9,13 @@ import './App.css';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Yükleniyor...</div>;
+  if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white font-black tracking-widest uppercase text-xs">Yükleniyor...</div>;
   return isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
 const ProfileRoute = ({ children }) => {
   const { hasProfile, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Yükleniyor...</div>;
+  if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white font-black tracking-widest uppercase text-xs">Yükleniyor...</div>;
   return hasProfile ? children : <Navigate to="/profile-setup" replace />;
 };
 
@@ -46,6 +46,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
+      {/* Spec: Consistency rule. Redirect all unknown to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
